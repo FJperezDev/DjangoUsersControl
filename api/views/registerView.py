@@ -5,7 +5,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from rest_framework import permissions
 
-from ..decorators.role_required import role_required
 from ..models import CustomUser
 from ..serializers import CustomUserSerializer
 

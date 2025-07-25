@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
         ('superteacher', 'Superteacher'),
@@ -36,3 +37,36 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
+    
+
+class Student(CustomUser):
+    """
+    Student model that inherits from CustomUser.
+    This model can have additional fields specific to students if needed.
+    """
+    class Meta:
+        verbose_name = 'Student'
+        verbose_name_plural = 'Students'
+
+    def __str__(self):
+        return f"{self.username} - {self.role}"  # Assuming role is a field in CustomUser
+
+class Teacher(CustomUser):
+    """
+    Teacher is a subclass of CustomUser that represents a user with
+    teacher privileges in the system.
+    """
+    class Meta:
+        proxy = True
+        verbose_name = 'Teacher'
+        verbose_name_plural = 'Teachers'
+
+class SuperTeacher(Teacher):
+    """
+    SuperTeacher is a subclass of Teacher that represents a user with
+    super teacher privileges in the system.
+    """
+    class Meta:
+        proxy = True
+        verbose_name = 'Super Teacher'
+        verbose_name_plural = 'Super Teachers'

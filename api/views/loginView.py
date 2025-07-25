@@ -1,13 +1,11 @@
+from django.contrib.auth import authenticate, login
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.authtoken.models import Token
 from rest_framework import status
-from django.contrib.auth import authenticate, login
-from ..models import CustomUser
 from ..serializers import CustomUserSerializer
+from ..models import CustomUser
 
 class LoginView(APIView):  
-
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
@@ -19,13 +17,9 @@ class LoginView(APIView):
 
         user = authenticate(request, username=email, password=password)
 
-
         if not user:
             return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        login(request, user)  # Log the user in
-        token, _ = Token.objects.get_or_create(user=user)
-        return Response({
-            'token': token.key,
-            'user': CustomUserSerializer(user).data
-        })
+        login(request, user) 
+
+        return Response({'message': 'Login exitoso', 'user': CustomUserSerializer(user).data})

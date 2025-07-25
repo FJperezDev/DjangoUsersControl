@@ -1,1 +1,1 @@
-from .customUser import CustomUser
+from .users import CustomUser, Student, Teacher, SuperTeacher
