@@ -1,6 +1,6 @@
 Para permitir acceso exclusivo a la api por la aplicacion de desarrollo, modificar backend/settings.py
 
-comentar estas 3 lineas
+comentar estas lineas
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME') 
 if RENDER_EXTERNAL_HOSTNAME:
