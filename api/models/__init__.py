@@ -1,1 +1,1 @@
-from .project import Project
+from .customuser import CustomUser
