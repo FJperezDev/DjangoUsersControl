@@ -1,13 +1,10 @@
-from django.contrib.auth import authenticate, logout
+from django.contrib.auth import logout
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from ..serializers import CustomUserSerializer
-from ..models import CustomUser
-from ..decorators import auth_required
+from rest_framework import status, permissions
 
 class LogoutView(APIView):  
-    @auth_required()
+    permission_classes = [permissions.IsAuthenticated]
     def post(self, request):
         logout(request)
         return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)

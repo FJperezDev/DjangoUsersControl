@@ -2,7 +2,7 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from ..models import CustomUser
 from ..serializers import CustomUserSerializer
-from ..decorators import role_required, auth_required
+from ..permissions import RolePermission
 
 # Create your views here.
 
@@ -25,51 +25,52 @@ class UserViewSet(viewsets.ModelViewSet):
 
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
-    permission_classes = [permissions.AllowAny]
 
-    @role_required({'superteacher', 'teacher'})
-    def list(self, request):
-        users = self.queryset
-        serializer = self.serializer_class(users, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_permissions(self):
+        action_roles = {
+            'list': {'superadmin', 'admin'},
+            'retrieve': 'any',
+            'create': {'superadmin'},
+            'update': {'superadmin'},
+            'partial_update': {'superadmin'},
+            'destroy': {'superadmin'},
+        }
+
+        roles = action_roles.get(self.action, None)
+        if roles == 'any':
+            return [permissions.IsAuthenticated()]
+        elif isinstance(roles, set):
+            return [RolePermission(roles)]
+        else:
+            return [permissions.AllowAny()]
     
-    @auth_required()
-    def retrieve(self, request, pk=None):
+    
+    def find_by_username_or_email(self, request, username=None, email=None):
+        if not username and not email:
+            return Response({'error': 'Username or email must be provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            user = self.queryset.get(pk=pk)
+            if username:
+                user = self.queryset.get(username=username)
+            elif email:
+                user = self.queryset.get(email=email)
         except CustomUser.DoesNotExist:
-            return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.serializer_class(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    @role_required('superteacher')
-    def create(self, request):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    @role_required('superteacher')
-    def update(self, request, pk=None):
-        try:
-            user = self.queryset.get(pk=pk)
-        except CustomUser.DoesNotExist:
-            return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+    def destroy_by_username_or_email(self, request, username=None, email=None):
+        if not username and not email:
+            return Response({'error': 'Username or email must be provided.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = self.serializer_class(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    @role_required('superteacher')
-    def destroy(self, request, pk=None):
         try:
-            user = self.queryset.get(pk=pk)
+            if username:
+                user = self.queryset.get(username=username)
+            elif email:
+                user = self.queryset.get(email=email)
         except CustomUser.DoesNotExist:
-            return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
