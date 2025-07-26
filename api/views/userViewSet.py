@@ -1,5 +1,6 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from ..models import CustomUser
 from ..serializers import CustomUserSerializer
 from ..permissions import RolePermission
@@ -34,43 +35,29 @@ class UserViewSet(viewsets.ModelViewSet):
             'update': {'superadmin'},
             'partial_update': {'superadmin'},
             'destroy': {'superadmin'},
+            'find_by_email': {'superadmin', 'admin'},
+            'find_by_username': {'superadmin', 'admin'},
+            'find_by_username_or_email': {'superadmin', 'admin'},
+        'destroy_by_username_or_email': {'superadmin'},
         }
 
         roles = action_roles.get(self.action, None)
-        if roles == 'any':
-            return [permissions.IsAuthenticated()]
-        elif isinstance(roles, set):
+        if isinstance(roles, set):
             return [RolePermission(roles)]
         else:
-            return [permissions.AllowAny()]
+            return [permissions.IsAuthenticated()]
     
-    
-    def find_by_username_or_email(self, request, username=None, email=None):
-        if not username and not email:
-            return Response({'error': 'Username or email must be provided.'}, status=status.HTTP_400_BAD_REQUEST)
-
+    @action(detail=False, methods=['get'], url_name="find-by", url_path="find")
+    def find_by_username_or_email(self, request, email=None, username=None):
+        if not (email or username):
+            return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            if username:
-                user = self.queryset.get(username=username)
-            elif email:
-                user = self.queryset.get(email=email)
+            user = self.queryset.get(username=username) if username else self.queryset.get(email=email)
         except CustomUser.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = self.serializer_class(user)
+        
+        serializer = self.get_serializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
     
-    def destroy_by_username_or_email(self, request, username=None, email=None):
-        if not username and not email:
-            return Response({'error': 'Username or email must be provided.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            if username:
-                user = self.queryset.get(username=username)
-            elif email:
-                user = self.queryset.get(email=email)
-        except CustomUser.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
