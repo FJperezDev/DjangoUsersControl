@@ -35,10 +35,6 @@ class UserViewSet(viewsets.ModelViewSet):
             'update': {'superadmin'},
             'partial_update': {'superadmin'},
             'destroy': {'superadmin'},
-            'find_by_email': {'superadmin', 'admin'},
-            'find_by_username': {'superadmin', 'admin'},
-            'find_by_username_or_email': {'superadmin', 'admin'},
-        'destroy_by_username_or_email': {'superadmin'},
         }
 
         roles = action_roles.get(self.action, None)
@@ -47,17 +43,20 @@ class UserViewSet(viewsets.ModelViewSet):
         else:
             return [permissions.IsAuthenticated()]
     
-    @action(detail=False, methods=['get'], url_name="find-by", url_path="find")
-    def find_by_username_or_email(self, request, email=None, username=None):
-        if not (email or username):
-            return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            user = self.queryset.get(username=username) if username else self.queryset.get(email=email)
-        except CustomUser.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-        
-        serializer = self.get_serializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_queryset(self):
+        queryset = CustomUser.objects.all()
+        username = self.request.query_params.get('username', None)
+        email = self.request.query_params.get('email', None)
 
+        if username and email:
+            queryset = queryset.filter(username__icontains=username, email__icontains=email)
+            print(f"Filtering by username: {username} and email: {email}")
+        elif username and not email:
+            queryset = queryset.filter(username__icontains=username)
+            print(f"Filtering by username: {username}")
+        elif email and not username:
+            queryset = queryset.filter(email__icontains=email)
+            print(f"Filtering by email: {email}")
+        return queryset
 
     

@@ -13,13 +13,14 @@ class LoginView(APIView):
         try:
             user = CustomUser.objects.get(email=email)
         except CustomUser.DoesNotExist:
-            return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
         user = authenticate(request, username=email, password=password)
 
         if not user:
-            return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
         login(request, user) 
 
-        return Response({'message': 'Login exitoso', 'user': CustomUserSerializer(user).data})
+        return Response({'message': 'Login Succesful', 'user': CustomUserSerializer(user).data})
+
