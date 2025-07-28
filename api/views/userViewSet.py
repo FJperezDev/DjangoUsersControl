@@ -1,6 +1,5 @@
-from rest_framework import viewsets, permissions, status
-from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework import viewsets, permissions
+
 from ..models import CustomUser
 from ..serializers import CustomUserSerializer
 from ..permissions import RolePermission
@@ -15,12 +14,6 @@ By default, ModelViewSet provides the following actions:
     - create: Creates a new user instance.
     - update: Updates an existing user instance (full or partial update).
     - destroy: Deletes a user instance.
-This class overrides these methods to add custom permission checks and error handling:
-    - list: Only accessible to users with 'superteacher' or 'teacher' roles.
-    - retrieve: Requires authentication.
-    - create: Only accessible to users with 'superteacher' role.
-    - update: Only accessible to users with 'superteacher' role.
-    - destroy: Only accessible to users with 'superteacher' role.
 """
 class UserViewSet(viewsets.ModelViewSet):
 
@@ -48,10 +41,9 @@ class UserViewSet(viewsets.ModelViewSet):
         username = self.request.query_params.get('username', None)
         email = self.request.query_params.get('email', None)
 
-        if username and email:
-            queryset = queryset.filter(username__icontains=username, email__icontains=email)
-        elif username and not email:
+        if username:
             queryset = queryset.filter(username__icontains=username)
-        elif email and not username:
+        if email:
             queryset = queryset.filter(email__icontains=email)
+            
         return queryset

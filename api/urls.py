@@ -7,7 +7,7 @@ from .views import UserViewSet, RegisterView, LoginView, LogoutView, LoggedUserV
 router = routers.DefaultRouter()
 
 # ViewSet for User model
-router.register(r'users', UserViewSet, basename='user')
+router.register('users', UserViewSet, basename='user')
 
 urlpatterns = router.urls
 
