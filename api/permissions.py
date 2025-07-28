@@ -9,3 +9,11 @@ class RolePermission(permissions.BasePermission):
         return user and user.is_authenticated and (
             user.role in self.allowed_roles or user.is_superuser
         )
+    
+class IsNotAuthenticated(permissions.BasePermission):
+    """
+    Permite solo a usuarios no autenticados (anónimos).
+    """
+
+    def has_permission(self, request, view):
+        return not request.user or not request.user.is_authenticated

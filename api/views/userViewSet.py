@@ -50,13 +50,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
         if username and email:
             queryset = queryset.filter(username__icontains=username, email__icontains=email)
-            print(f"Filtering by username: {username} and email: {email}")
         elif username and not email:
             queryset = queryset.filter(username__icontains=username)
-            print(f"Filtering by username: {username}")
         elif email and not username:
             queryset = queryset.filter(email__icontains=email)
-            print(f"Filtering by email: {email}")
         return queryset
-
-    
