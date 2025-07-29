@@ -1,6 +1,6 @@
 from .userViewSet import UserViewSet
 from .authentication import (
-    LoginView,
+    LogoutAllView,
     LogoutView,
     RegisterView,
     LoggedUserView
