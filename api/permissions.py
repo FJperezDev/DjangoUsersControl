@@ -1,4 +1,5 @@
 from rest_framework import permissions
+from rest_framework_simplejwt.tokens import RefreshToken
 
 class RolePermission(permissions.BasePermission):
     def __init__(self, allowed_roles):
@@ -16,4 +17,11 @@ class IsNotAuthenticated(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        return not request.user or not request.user.is_authenticated
+        refresh_token = request.COOKIES.get("refresh_token")
+        if not refresh_token:
+            return True
+        try:
+            refresh = RefreshToken(refresh_token)
+            return False
+        except:
+            return True

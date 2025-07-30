@@ -16,13 +16,38 @@ from ..models import CustomUser
 class LoggedUserView(APIView):  
     permission_classes = [permissions.IsAuthenticated]
     def get(self, request, *args, **kwargs):
-        CookieTokenRefreshView.post(self, request, *args, **kwargs)
         return Response(CustomUserSerializer(request.user).data, status=status.HTTP_200_OK)
+    
+class CookieTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.COOKIES.get('refresh_token')
+        if not refresh_token:
+            return Response({'message': 'Refresh token missing'}, status=401)
+        
+        serializer = self.get_serializer(data={'refresh': refresh_token})
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception:
+            return Response({'message': 'Invalid refresh token'}, status=401)
+        
+        access_token = serializer.validated_data['access']
+
+        response = Response({'access': access_token})
+        response.set_cookie(
+            key=settings.SIMPLE_JWT['AUTH_COOKIE'],
+            value=access,
+            httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+            path=settings.SIMPLE_JWT['AUTH_COOKIE_PATH'],
+        )
+        return response
+
 
 class CookieTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
-        if response.status_code == 200:
+        if response.status_code == status.HTTP_200_OK:
             access = response.data['access']
             refresh = response.data['refresh']
 
@@ -37,7 +62,7 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             response.set_cookie(
                 key=settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
                 value=refresh,
-                httponly=True,
+                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
                 secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
                 samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
                 path=settings.SIMPLE_JWT['AUTH_COOKIE_PATH'],
@@ -57,17 +82,24 @@ class LoginView(CookieTokenObtainPairView):
 
         response = super().post(request)
         if response.status_code == status.HTTP_200_OK:
-            response.data['message'] = 'Logged in successfully'
+            response.data = {'message' : 'Logged in successfully'}
+        else:
+            response.data = {'error' : str(response.status_code)}
 
         return response
 
-class LogoutView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+class CookieLogoutView(APIView):
     def post(self, request):
-        response = Response({"message": "Logged out"}, status=status.HTTP_200_OK)
+        response = Response()
         response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
         response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
+        response.data = {'message': 'Logged out'}
         return response
+
+class LogoutView(CookieLogoutView):
+    permission_classes = [permissions.IsAuthenticated]
+    def post(self, request):
+        return super().post(self)
 
 class RegisterView(APIView):
     def post(self, request):
@@ -93,39 +125,4 @@ class RegisterView(APIView):
         user.save()
 
         return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
-    
-class CookieTokenRefreshView(TokenRefreshView):
-    def post(self, request, *args, **kwargs):
-        refresh_token = request.COOKIES.get('refresh_token')
-        if not refresh_token:
-            return Response({'message': 'Refresh token missing'}, status=401)
-        
-        serializer = self.get_serializer(data={'refresh': refresh_token})
-        try:
-            serializer.is_valid(raise_exception=True)
-        except Exception:
-            return Response({'message': 'Invalid refresh token'}, status=401)
-        
-        access_token = serializer.validated_data['access']
 
-        response = Response({'access': access_token})
-        response.set_cookie(
-            key='access_token',
-            value=access_token,
-            httponly=True,
-            secure=not settings.DEBUG,
-            samesite='Lax',
-            max_age=300,  # 5 minutos
-            path='/',
-        )
-        return response
-
-
-
-class CookieLogoutView(APIView):
-    def post(self, request):
-        response = Response()
-        response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
-        response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
-        response.data = {'message': 'Logged out'}
-        return response

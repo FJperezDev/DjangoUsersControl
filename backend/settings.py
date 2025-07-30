@@ -60,7 +60,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    'api.middleware.RefreshTokenMiddleware'
+    'api.middleware.RefreshAccessTokenMiddleware'
 ]
 
 # Development only: CORS settings
