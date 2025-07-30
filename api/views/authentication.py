@@ -1,41 +1,73 @@
+from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import make_password
+from django.conf import settings
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
-
-from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 
+from ..permissions import IsNotAuthenticated
 from ..serializers import CustomUserSerializer
 from ..models import CustomUser
 
+
 class LoggedUserView(APIView):  
     permission_classes = [permissions.IsAuthenticated]
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
+        CookieTokenRefreshView.post(self, request, *args, **kwargs)
         return Response(CustomUserSerializer(request.user).data, status=status.HTTP_200_OK)
 
-class LogoutView(APIView):  
+class CookieTokenObtainPairView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            access = response.data['access']
+            refresh = response.data['refresh']
+
+            response.set_cookie(
+                key=settings.SIMPLE_JWT['AUTH_COOKIE'],
+                value=access,
+                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                path=settings.SIMPLE_JWT['AUTH_COOKIE_PATH'],
+            )
+            response.set_cookie(
+                key=settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+                value=refresh,
+                httponly=True,
+                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                path=settings.SIMPLE_JWT['AUTH_COOKIE_PATH'],
+            )
+            # No enviar tokens en el body para web si quieres seguridad máxima
+            response.data['message'] = 'Logged in with cookies'
+        return response
+
+class LoginView(CookieTokenObtainPairView):
+    permission_classes = [IsNotAuthenticated]
+
+    def post(self, request):
+        # Aquí validas usuario y contraseña (o usas serializer)
+        user = authenticate(email=request.data['email'], password=request.data['password'])
+        if user is None:
+            return Response({'message': 'Invalid credentials'}, status=401)
+
+        response = super().post(request)
+        if response.status_code == status.HTTP_200_OK:
+            response.data['message'] = 'Logged in successfully'
+
+        return response
+
+class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     def post(self, request):
-        try:
-            refresh_token = request.data['refresh']
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-            return Response({"message": "Successfully logged out."}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-class LogoutAllView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        tokens = OutstandingToken.objects.filter(user=request.user)
-        for token in tokens:
-            try:
-                BlacklistedToken.objects.get_or_create(token=token)
-            except Exception as e:
-                pass
-        return Response({"message": "Successfully logged out from all devices."}, status=status.HTTP_200_OK)
+        response = Response({"message": "Logged out"}, status=status.HTTP_200_OK)
+        response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
+        response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
+        return response
 
 class RegisterView(APIView):
     def post(self, request):
@@ -61,3 +93,39 @@ class RegisterView(APIView):
         user.save()
 
         return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
+    
+class CookieTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.COOKIES.get('refresh_token')
+        if not refresh_token:
+            return Response({'message': 'Refresh token missing'}, status=401)
+        
+        serializer = self.get_serializer(data={'refresh': refresh_token})
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception:
+            return Response({'message': 'Invalid refresh token'}, status=401)
+        
+        access_token = serializer.validated_data['access']
+
+        response = Response({'access': access_token})
+        response.set_cookie(
+            key='access_token',
+            value=access_token,
+            httponly=True,
+            secure=not settings.DEBUG,
+            samesite='Lax',
+            max_age=300,  # 5 minutos
+            path='/',
+        )
+        return response
+
+
+
+class CookieLogoutView(APIView):
+    def post(self, request):
+        response = Response()
+        response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
+        response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
+        response.data = {'message': 'Logged out'}
+        return response
