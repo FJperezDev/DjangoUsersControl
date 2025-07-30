@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     # 'django.contrib.sessions',  # Can remove if not using sessions
     # 'django.contrib.messages',  # Can remove if not using templates
-    # 'django.contrib.staticfiles',
+    'django.contrib.staticfiles',
     
     'api',
 
