@@ -48,12 +48,12 @@ if not DEBUG:
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',  # ⚠️ Only for admin panel
+    # 'django.contrib.admin',  # ⚠️ Only for admin panel
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    'django.contrib.sessions',  # Can remove if not using sessions
-    'django.contrib.messages',  # Can remove if not using templates
-    'django.contrib.staticfiles',
+    # 'django.contrib.sessions',  # Can remove if not using sessions
+    # 'django.contrib.messages',  # Can remove if not using templates
+    # 'django.contrib.staticfiles',
     
     'api',
 
@@ -72,10 +72,10 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
 
     # Only needed if you are using HTML in Views:
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
+    # 'django.contrib.sessions.middleware.SessionMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # 'django.contrib.messages.middleware.MessageMiddleware',
 
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     
@@ -107,31 +107,18 @@ DATABASES = {
     )
 }
 
-# This production code might break development mode, so we check whether we're in DEBUG mode
-if not DEBUG:
-    # Tell Django to copy static assets into a path called `staticfiles` (this is specific to Render)
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# # This production code might break development mode, so we check whether we're in DEBUG mode
+# if not DEBUG:
+#     # Tell Django to copy static assets into a path called `staticfiles` (this is specific to Render)
+#     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-    # Enable the WhiteNoise storage backend, which compresses static files to reduce disk use
-    # and renames the files with unique names for each version to support long-term caching
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+#     # Enable the WhiteNoise storage backend, which compresses static files to reduce disk use
+#     # and renames the files with unique names for each version to support long-term caching
+#     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ROOT_URLCONF = 'backend.urls'
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
+TEMPLATES = []
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
@@ -162,6 +149,12 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'api.authorization.CookieJWTAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',  # Solo JSON
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
     ],
 }
 
