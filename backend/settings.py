@@ -38,10 +38,12 @@ if RENDER_EXTERNAL_HOSTNAME:
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 
 # Deploy
-# CORS_ALLOWED_ORIGINS = [
-#     "https://yourdomain.onrender.com",
-#     "https://yourmobileapp.com",  # Expo React Native
-# ]
+EXPO_EXTERNAL_HOSTNAME = os.environ.get('EXPO_EXTERNAL_HOSTNAME') 
+if not DEBUG:
+    CORS_ALLOWED_ORIGINS = [
+        RENDER_EXTERNAL_HOSTNAME,
+        EXPO_EXTERNAL_HOSTNAME,  # Expo React Native
+    ]
 
 # Application definition
 
