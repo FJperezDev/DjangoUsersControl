@@ -1,5 +1,4 @@
 from django.utils.deprecation import MiddlewareMixin
-from datetime import timedelta
 from django.conf import settings
 
 class RefreshAccessTokenMiddleware(MiddlewareMixin):
