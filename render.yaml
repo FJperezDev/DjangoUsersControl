@@ -20,4 +20,4 @@ services:
         generateValue: true
       - key: WEB_CONCURRENCY
         value: 4
-      - key: EXPO_EXTERNAL_HOSTNAME
+      # - key: EXPO_EXTERNAL_HOSTNAME use it on render.com
