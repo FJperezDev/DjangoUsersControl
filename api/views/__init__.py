@@ -4,6 +4,4 @@ from .authentication import (
     RegisterView,
     LoggedUserView,
     LoginView,
-    CookieTokenRefreshView,
-    CookieTokenObtainPairView
 )
