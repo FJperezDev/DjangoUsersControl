@@ -35,6 +35,8 @@ class LoginView(TokenObtainPairView):
         return response
 
 class LogoutView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def post(self, request):
         response = Response()
         response.data = {'message': 'Logged out'}
