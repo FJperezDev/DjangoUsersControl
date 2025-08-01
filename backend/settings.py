@@ -42,7 +42,7 @@ EXPO_EXTERNAL_HOSTNAME = os.environ.get('EXPO_EXTERNAL_HOSTNAME')
 if not DEBUG:
     CORS_ALLOWED_ORIGINS = [
         "https://" + RENDER_EXTERNAL_HOSTNAME,
-        "http://localhost:8000",  # Expo React Native
+        "http://localhost:8081",  # Expo React Native
     ]
 
 # Application definition
