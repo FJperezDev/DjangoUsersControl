@@ -79,8 +79,6 @@ MIDDLEWARE = [
 
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     
-    # Custom Middleware
-    'api.middleware.RefreshAccessTokenMiddleware',
 ]
 
 SIMPLE_JWT = {

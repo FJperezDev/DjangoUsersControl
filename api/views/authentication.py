@@ -18,7 +18,7 @@ class LoggedUserView(APIView):
         return Response(CustomUserSerializer(request.user).data, status=status.HTTP_200_OK)
 
 class LoginView(TokenObtainPairView):
-    permission_classes = [IsNotAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         # Aquí validas usuario y contraseña (o usas serializer)
@@ -43,6 +43,8 @@ class LogoutView(APIView):
         return response
 
 class RegisterView(APIView):
+    permission_classes = [permissions.AllowAny]
+
     def post(self, request):
 
         email = request.data.get('email')

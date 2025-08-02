@@ -10,18 +10,4 @@ class RolePermission(permissions.BasePermission):
         return user and user.is_authenticated and (
             user.role in self.allowed_roles or user.is_superuser
         )
-    
-class IsNotAuthenticated(permissions.BasePermission):
-    """
-    Permite solo a usuarios no autenticados (anónimos).
-    """
 
-    def has_permission(self, request, view):
-        refresh_token = request.COOKIES.get("refresh_token")
-        if not refresh_token:
-            return True
-        try:
-            refresh = RefreshToken(refresh_token)
-            return False
-        except:
-            return True
