@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 
 from ..serializers import CustomUserSerializer
 from ..models import CustomUser
@@ -40,6 +41,21 @@ class LogoutView(APIView):
         response = Response()
         response.data = {'message': 'Logged out'}
         return response
+
+class LogoutAllView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        tokens = OutstandingToken.objects.filter(user=request.user)
+
+        for token in tokens:
+            try:
+                # Esto evita error si ya estaba en blacklist
+                BlacklistedToken.objects.get_or_create(token=token)
+            except Exception:
+                continue
+
+        return Response({"message": "All tokens revoked"}, status=200)
 
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
