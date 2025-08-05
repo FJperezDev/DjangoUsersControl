@@ -48,12 +48,7 @@ class LogoutAllView(APIView):
     def post(self, request):
         tokens = OutstandingToken.objects.filter(user=request.user)
 
-        for token in tokens:
-            try:
-                # Esto evita error si ya estaba en blacklist
-                BlacklistedToken.objects.get_or_create(token=token)
-            except Exception:
-                continue
+        deleted_count, _ = tokens.delete()
 
         return Response({"message": "All tokens revoked"}, status=200)
 

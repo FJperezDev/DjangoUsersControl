@@ -1,5 +1,5 @@
 from .userViewSet import UserViewSet
-from .authentication import (
+from .authenticationView import (
     LogoutView,
     RegisterView,
     LoggedUserView,
