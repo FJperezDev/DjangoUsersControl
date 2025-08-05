@@ -1,5 +1,7 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, Permission
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.apps import apps
 
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
@@ -38,7 +40,20 @@ class CustomUser(AbstractUser):
 
         super().save(*args, **kwargs)
 
+        # Después de guardar, si es admin, asignamos permisos de solo lectura
+        if self.role == 'admin':
+            self.user_permissions.clear()  # Limpiamos cualquier permiso anterior
 
+            for model in apps.get_models():
+                ct = ContentType.objects.get_for_model(model)
+                try:
+                    perm = Permission.objects.get(
+                        content_type=ct,
+                        codename=f'view_{model._meta.model_name}'
+                    )
+                    self.user_permissions.add(perm)
+                except Permission.DoesNotExist:
+                    continue  # Algunos modelos no tienen permisos de vista
 
     def __str__(self):
         return self.username
