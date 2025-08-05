@@ -40,9 +40,9 @@ class CustomUser(AbstractUser):
 
         super().save(*args, **kwargs)
 
-        # Después de guardar, si es admin, asignamos permisos de solo lectura
+        # After saving we add view only permissions
         if self.role == 'admin':
-            self.user_permissions.clear()  # Limpiamos cualquier permiso anterior
+            self.user_permissions.clear()  # Clear permissions
 
             for model in apps.get_models():
                 ct = ContentType.objects.get_for_model(model)
@@ -53,7 +53,7 @@ class CustomUser(AbstractUser):
                     )
                     self.user_permissions.add(perm)
                 except Permission.DoesNotExist:
-                    continue  # Algunos modelos no tienen permisos de vista
+                    continue 
 
     def __str__(self):
         return self.username
