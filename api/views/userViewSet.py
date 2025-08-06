@@ -22,7 +22,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         action_roles = {
-            'list': {'superadmin', 'admin'},
+            'list': 'any',
             'retrieve': 'any',
             'create': {'superadmin'},
             'update': {'superadmin'},
@@ -40,7 +40,10 @@ class UserViewSet(viewsets.ModelViewSet):
         queryset = CustomUser.objects.all()
         username = self.request.query_params.get('username', None)
         email = self.request.query_params.get('email', None)
+        role = self.request.query_params.get('role', None)
 
+        if role not in {'admin', 'superadmin'}:
+            return CustomUser.objects.none()
         if username:
             queryset = queryset.filter(username__icontains=username)
         if email:
