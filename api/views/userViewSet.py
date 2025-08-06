@@ -42,8 +42,8 @@ class UserViewSet(viewsets.ModelViewSet):
         email = self.request.query_params.get('email', None)
         role = self.request.query_params.get('role', None)
 
-        if role not in {'admin', 'superadmin'}:
-            return CustomUser.objects.none()
+        # if role not in {'admin', 'superadmin'}:
+        #     return CustomUser.objects.none()
         if username:
             queryset = queryset.filter(username__icontains=username)
         if email:
