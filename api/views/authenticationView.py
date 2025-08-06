@@ -29,7 +29,7 @@ class LoginView(TokenObtainPairView):
         response = super().post(request)
         if response.status_code == status.HTTP_200_OK:
             response.data['message'] = 'Logged in successfully'
-            response.data['user'] = CustomUserSerializer(user).data
+            # response.data['user'] = CustomUserSerializer(user).data
         else:
             response.data['error'] = str(response.status_code)
 
