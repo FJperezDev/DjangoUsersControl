@@ -36,6 +36,7 @@ class LoginView(TokenObtainPairView):
         return response
 
 class LogoutView(APIView):
+    permission_classes= [permissions.AllowAny]
 
     def post(self, request):
         response = Response()
@@ -43,6 +44,7 @@ class LogoutView(APIView):
         return response
 
 class LogoutAllView(APIView):
+    permission_classes= [permissions.AllowAny]
 
     def post(self, request):
         tokens = OutstandingToken.objects.filter(user=request.user)
