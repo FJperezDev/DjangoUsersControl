@@ -22,7 +22,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         action_roles = {
-            'list': 'any',
+            'list': {'superadmin', 'admin'},
             'retrieve': 'any',
             'create': {'superadmin'},
             'update': {'superadmin'},
