@@ -29,7 +29,7 @@ urlpatterns += [
 ]
 
 urlpatterns += [
-    path('account/profile', LoggedUserView.as_view(), name='profile'),
+    path('account/profile/', LoggedUserView.as_view(), name='profile'),
 ]
 
 
