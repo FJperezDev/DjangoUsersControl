@@ -25,7 +25,7 @@ class UserViewSet(viewsets.ModelViewSet):
             'list': {'superadmin', 'admin'},
             'retrieve': 'any',
             'create': {'superadmin'},
-            'update': {'superadmin'},
+            'update': {'superadmin', 'admin'},
             'partial_update': {'superadmin'},
             'destroy': {'superadmin'},
         }
